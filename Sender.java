@@ -19,6 +19,9 @@ public class Sender {
         InetAddress ip = InetAddress.getByName(address);
         DatagramSocket socket = new DatagramSocket();
         byte[] packet = new byte[SIZE];
+        long bytesSent = 0;
+
+        long start = System.currentTimeMillis();
 
         for(int i = 0; i < length; i += (SIZE-4)) {
             // creating byte array with sequence number to check for packet loss
@@ -27,19 +30,23 @@ public class Sender {
             System.arraycopy(message, i, packet, packID.length, Math.min((message.length-i),(SIZE-packID.length)));
             DatagramPacket messageChunk = new DatagramPacket(packet, packet.length, ip, port);
             socket.send(messageChunk);
+            bytesSent += messageChunk.getData().length;
+            if(System.currentTimeMillis() - start < 30000)
+                i = 0;
         }
         socket.close();
+        System.out.println("Transmission Data: \nTotal time\t30 sec\nTotal data\t"+(bytesSent*8)+" bit\nThroughput\t"+Sender.calculateThroughput(30000, bytesSent)+" kbit/s");
     }
 
-    public static int calculateThroughput(long start, long end, long receivedBytes) {
+    public static long calculateThroughput(long start, long end, long receivedBytes) {
         long duration = end - start;
         return Sender.calculateThroughput(duration, receivedBytes);
     }
 
-    public static int calculateThroughput(long duration, long receivedBytes) {
-        int durationInSec = (int) duration / 1000;
-        int data_kbit = (int) (receivedBytes*8) / 1000;
-        int throughput = data_kbit / durationInSec;
+    public static long calculateThroughput(long duration, long receivedBytes) {
+        long durationInSec = duration / 1000;
+        long data_kbit = receivedBytes*8 / 1000;
+        long throughput = data_kbit / durationInSec;
         return throughput;
     }
 
@@ -153,16 +160,7 @@ public class Sender {
                 " dann wichtig, wenn hinter einer Firewall operiert wird."+
                 "Der Unterschied in den Konstruktoren liegt darin, an welche";
 
-
-        long bytesSend = 0;
-        long start = System.currentTimeMillis();
-
-        while(System.currentTimeMillis()-start < 30000) {
             Sender.sendViaUDP(message, "localhost", 15999);
-            bytesSend += message.getBytes().length;
-        }
-
-        System.out.println("Transmission Data: \nTotal time\t30 sec\nTotal data\t"+(bytesSend*8)+" bit\nThroughput\t"+Sender.calculateThroughput(30000, bytesSend)+" kbit/s");
 
     }
 }

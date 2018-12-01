@@ -35,24 +35,27 @@ public class Receiver {
             catch(SocketTimeoutException timeOut) {
                 transmitting = false;
             }
-            packetID = ByteBuffer.wrap(Arrays.copyOfRange(packet.getData(), 0, 4)).getInt();
-            String content = new String(packet.getData(), 4, (packet.getLength()-4));
+            packetID = Receiver.getPacketID(packet);
         }
         socket.close();
-        System.out.println("Received packets:\t"+packetCounter);
-        System.out.println("Average throughput:\t"+ Receiver.calculateThroughput(start, end, totalReceived)+" kbit/s");
 
+        System.out.println("Average throughput:\t"+ Receiver.calculateThroughput(start, end, totalReceived)+" kbit/s");
+        System.out.println("Packets received:\t"+packetCounter+"\nPackets lost:\t"+(packetCounter-packetID+1));
     }
 
-    public static int calculateThroughput(long start, long end, long receivedBytes) {
+    public static int getPacketID(DatagramPacket packet) {
+        return ByteBuffer.wrap(Arrays.copyOfRange(packet.getData(), 0, 4)).getInt();
+    }
+
+    public static long calculateThroughput(long start, long end, long receivedBytes) {
         long duration = end - start;
         return Receiver.calculateThroughput(duration, receivedBytes);
     }
 
-    public static int calculateThroughput(long duration, long receivedBytes) {
-        int durationInSec = (int) duration / 1000;
-        int data_kbit = (int) (receivedBytes*8) / 1000;
-        int throughput = data_kbit / durationInSec;
+    public static long calculateThroughput(long duration, long receivedBytes) {
+        long durationInSec = duration / 1000;
+        long data_kbit = (receivedBytes*8) / 1000;
+        long throughput = data_kbit / durationInSec;
         return throughput;
     }
 
