@@ -1,3 +1,3 @@
-# Netzwerke - Praktikum 6
+## Networks - Lab 6
 
-Vergleich der Datenübertragungsraten bei Versand von Datenpaketen mit UDP und TCP.
+This project was created to measure transmission rates for data sent via UDP and TCP.
